@@ -13,17 +13,16 @@ import (
 
 // Compress applies fastlz_compress function to input
 func Compress(input []byte) ([]byte, error) {
-	len := len(input)
-	if len == 0 {
+	length := len(input)
+	if length == 0 {
 		return nil, errors.New("fastlz: empty input")
 	}
 
 	// Output buffer
-	cs := C.CString("")
-	defer C.free(unsafe.Pointer(cs))
+	output := make([]byte, int(float64(length)*1.4))
 
 	// Run
-	num, err := C.fastlz_compress(unsafe.Pointer(&input[0]), C.int(len), unsafe.Pointer(cs))
+	num, err := C.fastlz_compress(unsafe.Pointer(&input[0]), C.int(length), unsafe.Pointer(&output[0]))
 	if err != nil {
 		return nil, fmt.Errorf("fastlz: %v", err)
 	}
@@ -33,22 +32,21 @@ func Compress(input []byte) ([]byte, error) {
 		return nil, errors.New("fastlz: compression error, empty result")
 	}
 
-	return C.GoBytes(unsafe.Pointer(cs), num), nil
+	return output[:num], nil
 }
 
 // Decompress applies fastlz_decompress function to input
 func Decompress(input []byte, maxOut uint) ([]byte, error) {
-	len := len(input)
-	if len == 0 {
+	length := len(input)
+	if length == 0 {
 		return nil, errors.New("fastlz: empty input")
 	}
 
 	// Output buffer
-	cs := C.CString("")
-	defer C.free(unsafe.Pointer(cs))
+	output := make([]byte, int(float64(length)*10))
 
 	// Run
-	num, err := C.fastlz_decompress(unsafe.Pointer(&input[0]), C.int(len), unsafe.Pointer(cs), C.int(maxOut))
+	num, err := C.fastlz_decompress(unsafe.Pointer(&input[0]), C.int(length), unsafe.Pointer(&output[0]), C.int(maxOut))
 	if err != nil {
 		return nil, fmt.Errorf("fastlz: %v", err)
 	}
@@ -58,5 +56,5 @@ func Decompress(input []byte, maxOut uint) ([]byte, error) {
 		return nil, errors.New("fastlz: decompression error, empty result")
 	}
 
-	return C.GoBytes(unsafe.Pointer(cs), num), nil
+	return output[:num], nil
 }

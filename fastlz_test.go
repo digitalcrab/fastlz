@@ -18,7 +18,7 @@ func TestCompress(t *testing.T) {
 
 		output, outputErr := ioutil.ReadFile(fmt.Sprintf("test_data/fastlz.%d.mem.bin", i))
 		if outputErr != nil {
-			t.Error(outputErr)
+			t.Fatal(outputErr)
 		}
 
 		// Read size of data (this part comes from memcached)
@@ -29,27 +29,31 @@ func TestCompress(t *testing.T) {
 		// New output value
 		var readErr error
 		if output, readErr = ioutil.ReadAll(r); readErr != nil {
-			t.Error(readErr)
+			t.Fatal(readErr)
 		}
 
 		// Compress
 		outputCompressed, errComp := Compress(input)
 		if errComp != nil {
-			t.Error(errComp)
+			t.Fatal(errComp)
 		}
 
 		if !bytes.Equal(output, outputCompressed) {
-			t.Errorf("result #%d: compression result is not the same as expected\n\n", i)
+			t.Logf("expected: %q", output)
+			t.Logf("got: %q", outputCompressed)
+			t.Fatalf("result #%d: compression result is not the same as expected\n\n", i)
 		}
 
 		// Decompress
 		outputDecompressed, errDecomp := Decompress(outputCompressed, uint(size))
 		if errDecomp != nil {
-			t.Error(errComp)
+			t.Fatal(errDecomp)
 		}
 
 		if !bytes.Equal(outputDecompressed, input) {
-			t.Errorf("result #%d: decompression result is not the same as expected\n\n", i)
+			t.Logf("expected: %q", input)
+			t.Logf("got: %q", outputDecompressed)
+			t.Fatalf("result #%d: decompression result is not the same as expected\n\n", i)
 		}
 	}
 }
